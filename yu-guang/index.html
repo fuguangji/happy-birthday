@@ -222,6 +222,9 @@
     <div id="hint">SCROLL / MOVE TO EXPLORE</div>
 
     <script type="module">
+      const bgm = document.getElementById("bgm");
+      bgm.play();
+
       import * as THREE from "../three.js-master/build/three.module.js";
       import { TreeGenerator } from "../three.js-master/examples/jsm/generators/TreeGenerator.js";
       import { Water } from "../three.js-master/examples/jsm/objects/Water.js";
