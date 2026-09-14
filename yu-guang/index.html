@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>謝語光生日快樂！</title>
-    
+
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <link
@@ -205,7 +205,7 @@
     <div id="atmosphere"></div>
 
     <div id="content">
-      <div class="kicker">AN AUTUMN NIGHT FOR YOU</div>
+      <div class="kicker">Congratulations!</div>
 
       <h1>謝語光，生日快樂🎂！</h1>
 
@@ -223,6 +223,7 @@
     <script type="module">
       import * as THREE from "../three.js-master/build/three.module.js";
       import { TreeGenerator } from "../three.js-master/examples/jsm/generators/TreeGenerator.js";
+      import { Water } from "../three.js-master/examples/jsm/objects/Water.js";
 
       const canvas = document.getElementById("scene");
 
@@ -283,21 +284,29 @@
 
       scene.add(ground);
 
-      const waterGeometry = new THREE.PlaneGeometry(15, 100, 30, 100);
+      const waterGeometry = new THREE.PlaneGeometry(15, 100, 64, 256);
 
-      const waterMaterial = new THREE.MeshStandardMaterial({
-        color: 0x102b2d,
+      const water = new Water(waterGeometry, {
+        textureWidth: 1024,
+        textureHeight: 1024,
 
-        roughness: 0.15,
+        waterNormals: new THREE.TextureLoader().load(
+          "../three.js-master/examples/textures/waternormals.jpg",
+          (texture) => {
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+          },
+        ),
 
-        metalness: 0.2,
+        sunDirection: new THREE.Vector3(-20, 30, 10).normalize(),
 
-        transparent: true,
+        sunColor: 0xb8d7ff,
+        waterColor: 0x000000,
 
-        opacity: 0.82,
+        distortionScale:0,
+
+        fog: scene.fog !== undefined,
       });
-
-      const water = new THREE.Mesh(waterGeometry, waterMaterial);
 
       water.rotation.x = -Math.PI / 2;
 
@@ -330,28 +339,6 @@
         roughness: 1,
       });
 
-      const leafMaterials = [
-        new THREE.MeshStandardMaterial({
-          color: 0x9f4d24,
-          roughness: 1,
-        }),
-
-        new THREE.MeshStandardMaterial({
-          color: 0xc77725,
-          roughness: 1,
-        }),
-
-        new THREE.MeshStandardMaterial({
-          color: 0xd59a35,
-          roughness: 1,
-        }),
-
-        new THREE.MeshStandardMaterial({
-          color: 0x5d6f2c,
-          roughness: 1,
-        }),
-      ];
-
       const treeGenerator = new TreeGenerator(
         new THREE.MeshStandardMaterial({
           color: 0x5a3b28,
@@ -376,48 +363,82 @@
         tree.scale.setScalar(scale);
         scene.add(tree);
 
-        const leafCount = 12;
-        const foliage = new THREE.Group();
+        // ─────────────────────────────
+        // 秋季樹葉
+        // ─────────────────────────────
+
+        const leafColors = [0xc77725, 0xd59a35, 0x9f4d24, 0xe0a83a, 0xb85c28];
+
+        const leafGeometry = new THREE.CircleGeometry(0.5, 6);
+
+        const leafMaterials = leafColors.map(
+          (color) =>
+            new THREE.MeshStandardMaterial({
+              color,
+              side: THREE.DoubleSide,
+              roughness: 0.9,
+            }),
+        );
+
+        const leaves = new THREE.Group();
+
+        // 樹冠中心
+        const canopyCenter = new THREE.Vector3(0, 10, 0);
+
+        const leafCount = 300;
 
         for (let i = 0; i < leafCount; i++) {
           const leaf = new THREE.Mesh(
-            new THREE.IcosahedronGeometry(
-              (0.7 + Math.random() * 0.7) * scale,
-              1,
-            ),
-            foliageMaterial[Math.floor(Math.random() * foliageMaterial.length)],
+            leafGeometry,
+            leafMaterials[Math.floor(Math.random() * leafMaterials.length)],
           );
+
+          // 球狀樹冠
+          const theta = Math.random() * Math.PI * 2;
+          const phi = Math.acos(2 * Math.random() - 1);
+
+          const radius = 3 + Math.random() * 3;
+
+          const px = Math.sin(phi) * Math.cos(theta) * radius;
+
+          const py = Math.cos(phi) * radius * 0.85;
+
+          const pz = Math.sin(phi) * Math.sin(theta) * radius;
 
           leaf.position.set(
-            (Math.random() - 0.5) * 5 * scale,
-            (2 + Math.random() * 6) * scale,
-            (Math.random() - 0.5) * 5 * scale,
+            canopyCenter.x + px,
+            canopyCenter.y + py,
+            canopyCenter.z + pz,
           );
 
-          foliage.add(leaf);
+          // 隨機方向
+          leaf.rotation.set(
+            Math.random() * Math.PI,
+            Math.random() * Math.PI,
+            Math.random() * Math.PI,
+          );
+
+          const scale = 0.45 + Math.random() * 0.7;
+
+          leaf.scale.set(scale, scale * (0.7 + Math.random() * 0.5), scale);
+
+          leaves.add(leaf);
         }
 
-        foliage.position.set(x, -1, z);
-
-        scene.add(foliage);
+        tree.add(leaves);
 
         return tree;
       }
 
       const trees = [];
 
-      for (let i = 0; i < 55; i++) {
-        const side = Math.random() < 0.5 ? -1 : 1;
+      for (let i = 0; i < 28; i++) {
+        const z = -52 + i * 3;
 
-        const x = side * (7 + Math.random() * 15);
-
-        const z = -55 + Math.random() * 85;
-
-        const scale = 0.65 + Math.random() * 0.9;
-
-        const tree = createTree(x, z, scale);
-
-        trees.push(tree);
+        for (const x of [-10, 10]) {
+          const tree = createTree(x, z, 0.9);
+          trees.push(tree);
+        }
       }
 
       const bridge = new THREE.Group();
@@ -463,7 +484,7 @@
       createRail(-1.7);
       createRail(1.7);
 
-      bridge.position.set(0, 0, -7);
+      bridge.position.set(0, -1, -7);
 
       scene.add(bridge);
 
@@ -559,10 +580,7 @@
       for (let i = 0; i < 100; i++) {
         const group = new THREE.Group();
 
-        const geometry = new THREE.CircleGeometry(
-          0.11 + Math.random() * 0.12,
-          5,
-        );
+        const geometry = new THREE.CircleGeometry(0.2 + Math.random() * 0.2, 5);
 
         const material = new THREE.MeshBasicMaterial({
           color: leafColors[Math.floor(Math.random() * leafColors.length)],
@@ -645,21 +663,8 @@
 
         camera.lookAt(0, 4, -12);
 
-        const positions = waterGeometry.attributes.position;
-
-        for (let i = 0; i < positions.count; i++) {
-          const x = positions.getX(i);
-
-          const y = positions.getY(i);
-
-          const wave =
-            Math.sin(x * 0.35 + elapsed * 0.8) * 0.4 +
-            Math.sin(y * 0.7 + elapsed * 1.4) * 0.5;
-
-          positions.setZ(i, wave);
-        }
-
-        positions.needsUpdate = true;
+        const waterUniforms = water.material.uniforms;
+        waterUniforms.time.value = elapsed/10;
 
         for (const leaf of fallingLeaves) {
           const data = leaf.userData;
