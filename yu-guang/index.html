@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>謝語光生日快樂！</title>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+TC:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary: #d8ffe9;
+        --accent: #ffd86b;
+        --secondary: #ff9f43;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #07100d;
+      }
+
+      body {
+        font-family: "Noto Sans TC", sans-serif;
+      }
+
+      /* THREE.JS*/
+      #ene {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+      }
+
+      #atmosphere {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        background:
+          radial-gradient(
+            ellipse at 50% 35%,
+            rgba(255, 190, 100, 0.1),
+            transparent 35%
+          ),
+          linear-gradient(to bottom, rgba(3, 12, 18, 0.05), rgba(3, 8, 7, 0.45));
+      }
+
+      #content {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+        width: min(90vw, 700px);
+        text-align: center;
+        pointer-events: none;
+        color: var(--primary);
+        text-shadow:
+          0 0 12px rgba(220, 255, 235, 0.35),
+          0 0 40px rgba(220, 255, 235, 0.12);
+      }
+
+      .kicker {
+        font-family: "Share Tech Mono", monospace;
+        font-size: 0.8rem;
+        letter-spacing: 0.35em;
+        color: rgba(220, 255, 235, 0.6);
+
+        margin-bottom: 15px;
+        opacity: 0;
+        animation: fadeUp 1s ease forwards;
+        animation-delay: 0.8s;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 7vw, 4rem);
+        font-weight: 900;
+        line-height: 1.2;
+        margin-bottom: 28px;
+        color: #f4fff8;
+        opacity: 0;
+        transform: translateY(30px) scale(0.96);
+        animation: titleIn 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        animation-delay: 1.1s;
+      }
+      .message {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        font-size: clamp(0.9rem, 2.5vw, 1.15rem);
+        font-weight: 500;
+        color: #ffe3a0;
+      }
+
+      .message p {
+        opacity: 0;
+
+        transform: translateY(15px);
+
+        animation: messageIn 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      }
+
+      .message p:nth-child(1) {
+        animation-delay: 2s;
+      }
+
+      .message p:nth-child(2) {
+        animation-delay: 2.5s;
+      }
+
+      .message p:nth-child(3) {
+        animation-delay: 3s;
+      }
+
+      #hint {
+        position: fixed;
+
+        bottom: 25px;
+
+        left: 50%;
+
+        transform: translateX(-50%);
+
+        z-index: 10;
+
+        color: rgba(255, 255, 255, 0.35);
+
+        font-family: "Share Tech Mono", monospace;
+
+        font-size: 0.7rem;
+
+        letter-spacing: 0.15em;
+
+        pointer-events: none;
+
+        opacity: 0;
+
+        animation: fadeIn 1s ease forwards;
+
+        animation-delay: 4s;
+      }
+
+      /* 動畫
+ */
+
+      @keyframes titleIn {
+        to {
+          opacity: 1;
+
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @keyframes fadeUp {
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes messageIn {
+        to {
+          opacity: 1;
+
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeIn {
+        to {
+          opacity: 1;
+        }
+      }
+
+      /* 手機
+ */
+
+      @media (max-width: 600px) {
+        #content {
+          width: 88vw;
+        }
+
+        .message {
+          gap: 8px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <canvas id="scene"></canvas>
+
+    <div id="atmosphere"></div>
+
+    <div id="content">
+      <div class="kicker">AN AUTUMN NIGHT FOR YOU</div>
+
+      <h1>謝語光，生日快樂🎂！</h1>
+
+      <div class="message">
+        <p>願你在新的一年裡實現自己的夢想！</p>
+
+        <p>謝謝你一直以來的關照！</p>
+
+        <p>祝你接下來一切順利！！</p>
+      </div>
+    </div>
+
+    <div id="hint">SCROLL / MOVE TO EXPLORE</div>
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.186.0/build/three.module.js"
+    }
+}
+</script>
+    <script type="module">
+      import * as THREE from "three";
+      import { TreeGenerator } from "./generator.js";
+
+      const canvas = document.getElementById("scene");
+
+      const scene = new THREE.Scene();
+
+      const camera = new THREE.PerspectiveCamera(
+        55,
+        innerWidth / innerHeight,
+        0.1,
+        300,
+      );
+
+      camera.position.set(0, 6, 24);
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+
+        antialias: true,
+
+        alpha: false,
+      });
+
+      renderer.setSize(innerWidth, innerHeight);
+
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+      scene.background = new THREE.Color(0x07110f);
+
+      const ambient = new THREE.HemisphereLight(0x9fb6aa, 0x17231c, 1.8);
+
+      scene.add(ambient);
+
+      const moonLight = new THREE.DirectionalLight(0xb8d7ff, 2);
+
+      moonLight.position.set(-20, 30, 10);
+
+      scene.add(moonLight);
+
+      const warmLight = new THREE.PointLight(0xffb34d, 45, 70);
+
+      warmLight.position.set(0, 7, 4);
+
+      scene.add(warmLight);
+
+      const groundGeometry = new THREE.PlaneGeometry(160, 160, 1, 1);
+
+      const groundMaterial = new THREE.MeshStandardMaterial({
+        color: 0x101c15,
+
+        roughness: 1,
+      });
+
+      const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+
+      ground.rotation.x = -Math.PI / 2;
+
+      ground.position.y = -1;
+
+      scene.add(ground);
+
+      const waterGeometry = new THREE.PlaneGeometry(15, 100, 30, 100);
+
+      const waterMaterial = new THREE.MeshStandardMaterial({
+        color: 0x102b2d,
+
+        roughness: 0.15,
+
+        metalness: 0.2,
+
+        transparent: true,
+
+        opacity: 0.82,
+      });
+
+      const water = new THREE.Mesh(waterGeometry, waterMaterial);
+
+      water.rotation.x = -Math.PI / 2;
+
+      water.position.set(0, -0.92, -25);
+
+      scene.add(water);
+
+      function createBank(x) {
+        const geometry = new THREE.BoxGeometry(8, 1.3, 100);
+
+        const material = new THREE.MeshStandardMaterial({
+          color: 0x17251b,
+
+          roughness: 1,
+        });
+
+        const bank = new THREE.Mesh(geometry, material);
+
+        bank.position.set(x, -0.45, -25);
+
+        scene.add(bank);
+      }
+
+      createBank(-11);
+      createBank(11);
+
+      const trunkMaterial = new THREE.MeshStandardMaterial({
+        color: 0x392719,
+
+        roughness: 1,
+      });
+
+      const leafMaterials = [
+        new THREE.MeshStandardMaterial({
+          color: 0x9f4d24,
+          roughness: 1,
+        }),
+
+        new THREE.MeshStandardMaterial({
+          color: 0xc77725,
+          roughness: 1,
+        }),
+
+        new THREE.MeshStandardMaterial({
+          color: 0xd59a35,
+          roughness: 1,
+        }),
+
+        new THREE.MeshStandardMaterial({
+          color: 0x5d6f2c,
+          roughness: 1,
+        }),
+      ];
+
+      const treeGenerator = new TreeGenerator(
+        new THREE.MeshStandardMaterial({
+          color: 0x5a3b28,
+          roughness: 0.9,
+        }),
+      );
+
+      const foliageMaterial = [
+        new THREE.MeshStandardMaterial({ color: 0x5d6f2c }),
+        new THREE.MeshStandardMaterial({ color: 0x9f4d24 }),
+        new THREE.MeshStandardMaterial({ color: 0xc77725 }),
+        new THREE.MeshStandardMaterial({ color: 0xd59a35 }),
+      ];
+
+      function createTree(x, z, scale = 1) {
+        const tree = treeGenerator
+          .setSeed(Math.floor(Math.random() * 1000000))
+          .setLevel(4)
+          .build();
+
+        tree.position.set(x, -1, z);
+        tree.scale.setScalar(scale);
+        scene.add(tree);
+
+        const leafCount = 12;
+        const foliage = new THREE.Group();
+
+        for (let i = 0; i < leafCount; i++) {
+          const leaf = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(
+              (0.7 + Math.random() * 0.7) * scale,
+              1,
+            ),
+            foliageMaterial[Math.floor(Math.random() * foliageMaterial.length)],
+          );
+
+          leaf.position.set(
+            (Math.random() - 0.5) * 5 * scale,
+            (2 + Math.random() * 6) * scale,
+            (Math.random() - 0.5) * 5 * scale,
+          );
+
+          foliage.add(leaf);
+        }
+
+        foliage.position.set(x, -1, z);
+
+        scene.add(foliage);
+
+        return tree;
+      }
+
+      const trees = [];
+
+      for (let i = 0; i < 55; i++) {
+        const side = Math.random() < 0.5 ? -1 : 1;
+
+        const x = side * (7 + Math.random() * 15);
+
+        const z = -55 + Math.random() * 85;
+
+        const scale = 0.65 + Math.random() * 0.9;
+
+        const tree = createTree(x, z, scale);
+
+        trees.push(tree);
+      }
+
+      const bridge = new THREE.Group();
+
+      const bridgeGeometry = new THREE.BoxGeometry(20, 0.7, 4);
+
+      const bridgeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x5a3825,
+
+        roughness: 0.9,
+      });
+
+      const bridgeDeck = new THREE.Mesh(bridgeGeometry, bridgeMaterial);
+
+      bridgeDeck.position.y = 1.3;
+
+      bridge.add(bridgeDeck);
+
+      function createRail(z) {
+        const rail = new THREE.Mesh(
+          new THREE.BoxGeometry(20, 0.3, 0.3),
+
+          bridgeMaterial,
+        );
+
+        rail.position.set(0, 3, z);
+
+        bridge.add(rail);
+
+        for (let x = -9; x <= 9; x += 3) {
+          const post = new THREE.Mesh(
+            new THREE.BoxGeometry(0.3, 1.7, 0.3),
+
+            bridgeMaterial,
+          );
+
+          post.position.set(x, 2.15, z);
+
+          bridge.add(post);
+        }
+      }
+
+      createRail(-1.7);
+      createRail(1.7);
+
+      bridge.position.set(0, 0, -7);
+
+      scene.add(bridge);
+
+      const stoneMaterial = new THREE.MeshStandardMaterial({
+        color: 0x4d5145,
+
+        roughness: 1,
+      });
+
+      for (let i = 0; i < 70; i++) {
+        const stone = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(0.15 + Math.random() * 0.35, 0),
+
+          stoneMaterial,
+        );
+
+        stone.position.set(
+          -9 + Math.random() * 18,
+
+          -0.75,
+
+          -60 + Math.random() * 70,
+        );
+
+        stone.rotation.set(Math.random(), Math.random(), Math.random());
+
+        scene.add(stone);
+      }
+
+      const moon = new THREE.Mesh(
+        new THREE.SphereGeometry(3, 32, 32),
+
+        new THREE.MeshBasicMaterial({
+          color: 0xfff4ce,
+        }),
+      );
+
+      moon.position.set(-12, 18, -40);
+
+      scene.add(moon);
+
+      const moonGlow = new THREE.Mesh(
+        new THREE.SphereGeometry(4.5, 32, 32),
+
+        new THREE.MeshBasicMaterial({
+          color: 0xffe9a8,
+
+          transparent: true,
+
+          opacity: 0.08,
+        }),
+      );
+
+      moonGlow.position.copy(moon.position);
+
+      scene.add(moonGlow);
+
+      /* 星空
+       */
+
+      const starGeometry = new THREE.BufferGeometry();
+
+      const starCount = 500;
+
+      const starPositions = new Float32Array(starCount * 3);
+
+      for (let i = 0; i < starCount; i++) {
+        starPositions[i * 3] = (Math.random() - 0.5) * 180;
+        starPositions[i * 3 + 1] = 10 + Math.random() * 70;
+        starPositions[i * 3 + 2] = -100 + Math.random() * 100;
+      }
+
+      starGeometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(starPositions, 3),
+      );
+
+      const starMaterial = new THREE.PointsMaterial({
+        color: 0xfff4ce,
+        size: 0.12,
+        transparent: true,
+        opacity: 0.7,
+      });
+
+      const stars = new THREE.Points(starGeometry, starMaterial);
+
+      scene.add(stars);
+
+      const leafColors = [0xc77725, 0xd59a35, 0x9f4d24, 0xc5a23a];
+
+      const fallingLeaves = [];
+
+      for (let i = 0; i < 100; i++) {
+        const group = new THREE.Group();
+
+        const geometry = new THREE.CircleGeometry(
+          0.11 + Math.random() * 0.12,
+          5,
+        );
+
+        const material = new THREE.MeshBasicMaterial({
+          color: leafColors[Math.floor(Math.random() * leafColors.length)],
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.8,
+        });
+
+        const leaf = new THREE.Mesh(geometry, material);
+
+        group.add(leaf);
+
+        group.position.set(
+          (Math.random() - 0.5) * 35,
+          5 + Math.random() * 30,
+          -55 + Math.random() * 65,
+        );
+
+        group.userData = {
+          speed: 0.015 + Math.random() * 0.025,
+          sway: 0.5 + Math.random() * 1.5,
+          phase: Math.random() * Math.PI * 2,
+          rotation: 0.01 + Math.random() * 0.03,
+        };
+
+        scene.add(group);
+
+        fallingLeaves.push(group);
+      }
+
+      const glowParticles = [];
+
+      for (let i = 0; i < 30; i++) {
+        const geometry = new THREE.SphereGeometry(
+          0.04 + Math.random() * 0.06,
+          8,
+          8,
+        );
+
+        const material = new THREE.MeshBasicMaterial({
+          color: 0xffd86b,
+        });
+
+        const particle = new THREE.Mesh(geometry, material);
+
+        particle.position.set(
+          (Math.random() - 0.5) * 18,
+          1 + Math.random() * 10,
+          -5 + Math.random() * 12,
+        );
+
+        particle.userData = {
+          phase: Math.random() * Math.PI * 2,
+        };
+
+        scene.add(particle);
+
+        glowParticles.push(particle);
+      }
+
+      let mouseX = 0;
+      let mouseY = 0;
+
+      window.addEventListener("pointermove", (event) => {
+        mouseX = event.clientX / innerWidth - 0.5;
+
+        mouseY = event.clientY / innerHeight - 0.5;
+      });
+
+      const clock = new THREE.Clock();
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        const elapsed = clock.getElapsedTime();
+
+        camera.position.x += (mouseX * 3 - camera.position.x) * 0.025;
+
+        camera.position.y += (6 - mouseY * 1.5 - camera.position.y) * 0.025;
+
+        camera.lookAt(0, 4, -12);
+
+        const positions = waterGeometry.attributes.position;
+
+        for (let i = 0; i < positions.count; i++) {
+          const x = positions.getX(i);
+
+          const y = positions.getY(i);
+
+          const wave =
+            Math.sin(x * 0.35 + elapsed * 0.8) * 0.4 +
+            Math.sin(y * 0.7 + elapsed * 1.4) * 0.5;
+
+          positions.setZ(i, wave);
+        }
+
+        positions.needsUpdate = true;
+
+        for (const leaf of fallingLeaves) {
+          const data = leaf.userData;
+
+          leaf.position.y -= data.speed;
+
+          leaf.position.x += Math.sin(elapsed * data.sway + data.phase) * 0.008;
+
+          leaf.position.z += Math.cos(elapsed * 0.7 + data.phase) * 0.003;
+
+          leaf.rotation.x += data.rotation;
+
+          leaf.rotation.z += data.rotation * 0.7;
+
+          if (leaf.position.y < -1) {
+            leaf.position.y = 20 + Math.random() * 15;
+
+            leaf.position.x = (Math.random() - 0.5) * 35;
+
+            leaf.position.z = -55 + Math.random() * 65;
+          }
+        }
+
+        for (const particle of glowParticles) {
+          particle.position.y +=
+            Math.sin(elapsed + particle.userData.phase) * 0.002;
+
+          const scale =
+            1 + Math.sin(elapsed * 2 + particle.userData.phase) * 0.3;
+
+          particle.scale.setScalar(scale);
+        }
+
+        stars.material.opacity = 0.55 + Math.sin(elapsed * 0.5) * 0.15;
+
+        renderer.render(scene, camera);
+      }
+
+      window.addEventListener("resize", () => {
+        camera.aspect = innerWidth / innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(innerWidth, innerHeight);
+
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      });
+
+      animate();
+    </script>
+  </body>
+</html>
