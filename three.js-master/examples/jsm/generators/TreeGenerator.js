@@ -3,10 +3,10 @@ import {
 	BufferGeometry,
 	Mesh,
 	Vector3
-} from 'three';
+} from '../../../build/three.module.js';
 
-import { MeshStandardNodeMaterial } from 'three/webgpu';
-import { color, float, mx_fractal_noise_float, positionLocal, vec3 } from 'three/tsl';
+import { MeshStandardNodeMaterial } from '../../../build/three.webgpu.nodes.js';
+import { color, float, mx_fractal_noise_float, positionLocal, vec3 } from '../../../build/three.tsl.js';
 
 // the golden angle ( 137.5° ): rolling each sibling branch by this much around the
 // parent axis spreads them like a real stem, so they never line up

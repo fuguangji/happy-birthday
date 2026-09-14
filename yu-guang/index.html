@@ -369,7 +369,7 @@
       function createTree(x, z, scale = 1) {
         const tree = treeGenerator
           .setSeed(Math.floor(Math.random() * 1000000))
-          .setLevel(4)
+          .setLevels(4)
           .build();
 
         tree.position.set(x, -1, z);
