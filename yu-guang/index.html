@@ -187,9 +187,6 @@
         }
       }
 
-      /* 手機
- */
-
       @media (max-width: 600px) {
         #content {
           width: 88vw;
@@ -222,16 +219,10 @@
     </div>
 
     <div id="hint">SCROLL / MOVE TO EXPLORE</div>
-<script type="importmap">
-{
-    "imports": {
-        "three": "https://unpkg.com/three@0.186.0/build/three.module.js"
-    }
-}
-</script>
+
     <script type="module">
-      import * as THREE from "three";
-      import { TreeGenerator } from "./generator.js";
+      import * as THREE from "../three.js-master/build/three.module.js";
+      import { TreeGenerator } from "../three.js-master/examples/jsm/generators/TreeGenerator.js";
 
       const canvas = document.getElementById("scene");
 
